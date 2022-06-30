@@ -8,6 +8,7 @@ class Rod:
         self.file = ""
         self.type = ""
         self.orientation = 0
+        self.barycenter = []
         self.length = 0
         self.width = 0
         self.width_b = 0
@@ -30,8 +31,10 @@ class Rod:
 
     def __repr__(self):
         return f"type: {self.type}  orientation: {self.orientation} " \
-               f"num holes: {len(self.holes)} -> \n\t"
+               f"num holes: {len(self.holes)} -> \n\t" \
+               f"ib: {self.barycenter[0]}, jb: {self.barycenter[1]} \n"
 
     def __str__(self):
         return f"type: {self.type}  orientation: {self.orientation} " \
-               f"num holes: {len(self.holes)} -> \n\t"
+               f"num holes: {len(self.holes)} -> \n\t" \
+               f"ib: {self.barycenter[0]}, jb: {self.barycenter[1]} \n"

@@ -19,12 +19,12 @@ def binarize(image):
     return thresh
 
 
-def bin_morphology(image):
-    # kernel = np.eye(5, dtype=np.uint8)
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-    cleaned_image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
-    image_show(cleaned_image, "After Morphology")
-    return cleaned_image
+# def bin_morphology(image):
+#     # kernel = np.eye(5, dtype=np.uint8)
+#     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+#     cleaned_image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
+#     image_show(cleaned_image, "After Morphology")
+#     return cleaned_image
 
 
 def connected_comp_labelling(image):
@@ -38,6 +38,7 @@ def connected_comp_labelling(image):
     for i in range(1, retval):
         # I'll have to add a checker for checking whether it's a rod or not
         rod_list.append(rod.Rod())
+        rod_list[i - 1].barycenter = centroids[i]
         component = np.array([[255 if pixel == i else 0 for pixel in row] for row in labels], dtype=np.uint8)
         components_list.append(component)
         # image_show(255-component, "component")
@@ -47,7 +48,7 @@ def connected_comp_labelling(image):
     #     rod_stats = blob_stats_parser(h_retval, h_stats, h_centroids)
     #     image_mer = draw_obb(mask_holes, rod_stats)
     #     image_centroids = draw_centroids(image_mer, rod_stats)
-    #     image_show(image_centroids, "aiuto")
+    #     image_show(image_centroids, "qwqwqwe")
     #
     mask1 = blobs_mask(retval, labels.copy())
     image_mer1 = draw_obb(mask1, rod_stats)
@@ -57,16 +58,69 @@ def connected_comp_labelling(image):
     return components_list, rod_list
 
 
-def blob_analysis(components):
+def blob_analysis(components, image):
     moments_list = [cv2.moments(components[i]) for i in range(len(components))]
 
-    # orientation DEFINED IN [0, PI], FIND A WAY TO EXPRESS IT IN [0, 2PI]
+    major_axis = []
+    minor_axis = []
+
     for i in range(len(moments_list)):
-        theta = -0.5 * math.atan(2 * moments_list[i]["mu11"] / (moments_list[i]["mu20"] - moments_list[i]["mu02"]))
-        rod_list[i].orientation = abs(theta)*180/math.pi
+        # orientation DEFINED IN [0, PI], FIND A WAY TO EXPRESS IT IN [0, 2PI]
+        theta = -0.5 * math.atan(2 * moments_list[i]["mu11"] / (moments_list[i]["mu02"] - moments_list[i]["mu20"]))
+        rod_list[i].orientation = abs(theta) * 180 / math.pi
 
+        alpha = -math.sin(theta)
+        beta = math.cos(theta)
 
+        # major axis equation in the image reference frame: aj+bi+c=0 -> a = alpha, b = -beta, c = beta*ib - alpha*jb
+        major_axis.append((alpha, -beta, beta * rod_list[i].barycenter[0] - alpha * rod_list[i].barycenter[1]))
+        # minor axis equation in the image reference frame: aj+bi+c=0 -> a = beta, b = alpha, c = -beta*jb - alpha*ib
+        minor_axis.append((beta, -alpha, -beta * rod_list[i].barycenter[1] - alpha * rod_list[i].barycenter[0]))
 
+        # according to what do I choose the kernel size???????
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+        component_eroded = cv2.erode(components[i], kernel)
+        component_contour = components[i] - component_eroded
+        image_show(component_contour, "Contour extrapolated from erosion")
+        print(component_contour)
+
+        # furthest points from the major and minor axis
+        # cx = (j, i, distance from major axis)
+        c1 = (0, 0, 0)
+        c2 = (0, 0, 0)
+        c3 = (0, 0, 0)
+        c4 = (0, 0, 0)
+
+        # vertex of the minimum enclosed rectangle
+        v1 = (0, 0, 0)
+        v2 = (0, 0, 0)
+        v3 = (0, 0, 0)
+        v4 = (0, 0, 0)
+
+        ji = np.nonzero(component_contour == 255)  # tuple of 2 ndarrays
+        print(ji, type(ji[0]), len(ji[1]))
+        for k in range(len(ji[0])):
+            dist_major_axis = (major_axis[i][0] * ji[0][k] + major_axis[i][1] * ji[1][k] + major_axis[i][2]) / \
+                              math.sqrt(major_axis[i][0] ** 2 + major_axis[i][1] ** 2)
+            dist_minor_axis = (minor_axis[i][0] * ji[0][k] + minor_axis[i][1] * ji[1][k] + minor_axis[i][2]) / \
+                              math.sqrt(minor_axis[i][0] ** 2 + minor_axis[i][1] ** 2)
+            if dist_major_axis > c1[2]:
+                c1 = (ji[0][k], ji[1][k], dist_major_axis)
+            if dist_major_axis < c2[2]:
+                c2 = (ji[0][k], ji[1][k], dist_major_axis)
+            if dist_minor_axis > c3[2]:
+                c3 = (ji[0][k], ji[1][k], dist_minor_axis)
+            if dist_minor_axis < c4[2]:
+                c4 = (ji[0][k], ji[1][k], dist_minor_axis)
+
+        component_rgb = cv2.merge([components[i], components[i], components[i]])
+        cv2.circle(component_rgb, (c1[1], c1[0]), 4, (0, 150, 150), -1)
+        cv2.circle(component_rgb, (c2[1], c2[0]), 4, (0, 150, 150), -1)
+        cv2.circle(component_rgb, (c3[1], c3[0]), 4, (0, 150, 150), -1)
+        cv2.circle(component_rgb, (c4[1], c4[0]), 4, (0, 150, 150), -1)
+        image_show(component_rgb, "MER")
+
+    draw_major_axis(major_axis, image)
 
 
 # parser used to acquire the stats of each component.
@@ -105,6 +159,15 @@ def blobs_mask(num_labels, labels):
 #     else:
 #         return False
 
+def draw_major_axis(major_axis, image):
+    comp_major_axis = np.zeros_like(image)
+    for i in range(len(major_axis)):
+        x1 = -major_axis[i][2] / major_axis[i][1]
+        y2 = -major_axis[i][2] / major_axis[i][0]
+        comp_major_axis = cv2.line(image, (int(abs(x1)), 0), (0, int(abs(y2))), (255, 0, 0), 1)
+
+    image_show(comp_major_axis, "Image with Major Axis")
+
 
 def draw_obb(image, stats_list):
     for i in range(len(stats_list)):
@@ -126,4 +189,3 @@ def image_show(image, title):
     plt.title(title)
     plt.imshow(image, cmap='gray', vmin='0', vmax='255')
     plt.show()
-
