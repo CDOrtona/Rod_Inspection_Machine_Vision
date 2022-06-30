@@ -6,7 +6,7 @@ import utils
 
 def init():
     # Add multiple file management
-    im = cv2.imread('images/TESI31.BMP', cv2.IMREAD_GRAYSCALE)
+    im = cv2.imread('images/TESI01.BMP', cv2.IMREAD_GRAYSCALE)
     hist, bins = np.histogram(im.flatten(), 256, [0, 256])
     # plt.figure(1)
     # plt.stem(hist, use_line_collection=True)
@@ -18,8 +18,14 @@ def init():
 
 if __name__ == '__main__':
     image = init()
+    utils.image_show(image, "main")
     bin_image = utils.binarize(image.copy())
-    utils.connected_comp_labelling(bin_image)
+    # clean_image = utils.bin_morphology(bin_image)
+    components, rods = utils.connected_comp_labelling(bin_image)
+    utils.blob_analysis(components)
+#    print(rod_list[1].holes)
+    print(list(rods[i] for i in range(len(rods))))
+
 
 
 
