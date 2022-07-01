@@ -12,7 +12,7 @@ rod_list = []
 
 
 def binarize(image):
-    ret, thresh = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
+    _, thresh = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
     # ret_inv, thresh_inv = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
     image_show(thresh, "Binarized image with Otsu's algorithm")
     # image_show(thresh_inv, "Binarized image with Otsu's algorithm")
