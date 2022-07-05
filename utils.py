@@ -66,8 +66,12 @@ def blob_analysis(components, image):
 
     for i in range(len(moments_list)):
         # orientation DEFINED IN [0, PI], FIND A WAY TO EXPRESS IT IN [0, 2PI]
-        theta = -0.5 * math.atan(2 * moments_list[i]["mu11"] / (moments_list[i]["mu02"] - moments_list[i]["mu20"]))
-        rod_list[i].orientation = abs(theta) * 180 / math.pi
+        theta = -0.5 * math.atan((2 * moments_list[i]["mu11"]) / (moments_list[i]["mu02"] - moments_list[i]["mu20"]))
+        d2theta = 2 * (moments_list[i]['mu02'] - moments_list[i]['mu20']) * math.cos(2 * theta) - \
+                  4 * moments_list[i]['mu11'] * math.sin(2 * theta)
+        theta = theta if d2theta > 0 else theta + math.pi / 2
+        rod_list[i].orientation = theta * 180 / math.pi
+        print(theta)
 
         alpha = -math.sin(theta)
         beta = math.cos(theta)
@@ -75,7 +79,7 @@ def blob_analysis(components, image):
         # major axis equation in the image reference frame: aj+bi+c=0 -> a = alpha, b = -beta, c = beta*ib - alpha*jb
         major_axis.append((alpha, -beta, beta * rod_list[i].barycenter[0] - alpha * rod_list[i].barycenter[1]))
         # minor axis equation in the image reference frame: aj+bi+c=0 -> a = beta, b = alpha, c = -beta*jb - alpha*ib
-        minor_axis.append((beta, -alpha, -beta * rod_list[i].barycenter[1] - alpha * rod_list[i].barycenter[0]))
+        minor_axis.append((beta, alpha, -beta * rod_list[i].barycenter[1] - alpha * rod_list[i].barycenter[0]))
 
         # according to what do I choose the kernel size???????
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
@@ -90,12 +94,6 @@ def blob_analysis(components, image):
         c2 = (0, 0, 0)
         c3 = (0, 0, 0)
         c4 = (0, 0, 0)
-
-        # vertex of the minimum enclosed rectangle
-        v1 = (0, 0, 0)
-        v2 = (0, 0, 0)
-        v3 = (0, 0, 0)
-        v4 = (0, 0, 0)
 
         ji = np.nonzero(component_contour == 255)  # tuple of 2 ndarrays
         print(ji, type(ji[0]), len(ji[1]))
@@ -113,12 +111,35 @@ def blob_analysis(components, image):
             if dist_minor_axis < c4[2]:
                 c4 = (ji[0][k], ji[1][k], dist_minor_axis)
 
+        # angular coefficient of the major and minor axis
+        m_major_axis = -major_axis[i][0]/major_axis[i][1]
+        m_minor_axis = -minor_axis[i][0]/minor_axis[i][1]
+
+        # line connecting the farthest points from the minor and major axis -> l1 = (m, q)
+        l1 = (m_major_axis, c1[1]-m_major_axis*c1[0])
+        l2 = (m_major_axis, c2[1]-m_major_axis*c2[0])
+        w1 = (m_minor_axis, c3[1]-m_minor_axis*c3[0])
+        w2 = (m_minor_axis, c4[1]-m_minor_axis*c4[0])
+
+        # vertexes of the minimum enclosed rectangle
+        v1 = ((w1[1] - l1[1]) / (l1[0] - w1[0]), (w1[1] - l1[1]) / (l1[0] - w1[0])*l1[0] + l1[1])
+        v2 = ((w2[1] - l1[1]) / (l1[0] - w2[0]), (w2[1] - l1[1]) / (l1[0] - w2[0])*l1[0] + l1[1])
+        v4 = ((w2[1] - l2[1]) / (l2[0] - w2[0]), (w2[1] - l2[1]) / (l2[0] - w2[0])*l2[0] + l2[1])
+        v3 = ((w1[1] - l2[1]) / (l2[0] - w1[0]), (w1[1] - l2[1]) / (l2[0] - w1[0])*l2[0] + l2[1])
+
         component_rgb = cv2.merge([components[i], components[i], components[i]])
-        cv2.circle(component_rgb, (c1[1], c1[0]), 4, (0, 150, 150), -1)
-        cv2.circle(component_rgb, (c2[1], c2[0]), 4, (0, 150, 150), -1)
-        cv2.circle(component_rgb, (c3[1], c3[0]), 4, (0, 150, 150), -1)
-        cv2.circle(component_rgb, (c4[1], c4[0]), 4, (0, 150, 150), -1)
+        cv2.line(component_rgb, (int(v1[0]), int(v1[0])), (int(v3[1]), int(v3[1])), (255, 0, 0), 1)
+        cv2.line(component_rgb, (int(v3[0]), int(v3[0])), (int(v4[1]), int(v4[1])), (255, 0, 0), 1)
+        cv2.line(component_rgb, (int(v4[0]), int(v4[0])), (int(v2[1]), int(v2[1])), (255, 0, 0), 1)
+        cv2.line(component_rgb, (int(v4[0]), int(v4[0])), (int(v3[1]), int(v3[1])), (255, 0, 0), 1)
         image_show(component_rgb, "MER")
+
+        # component_rgb = cv2.merge([components[i], components[i], components[i]])
+        # cv2.circle(component_rgb, (c1[1], c1[0]), 4, (0, 150, 150), -1)
+        # cv2.circle(component_rgb, (c2[1], c2[0]), 4, (0, 150, 150), -1)
+        # cv2.circle(component_rgb, (c3[1], c3[0]), 4, (0, 150, 150), -1)
+        # cv2.circle(component_rgb, (c4[1], c4[0]), 4, (0, 150, 150), -1)
+        # image_show(component_rgb, "MER")
 
     draw_major_axis(major_axis, image)
 

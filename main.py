@@ -6,7 +6,7 @@ import utils
 
 def init():
     # Add multiple file management
-    im = cv2.imread('images/TESI01.BMP')
+    im = cv2.imread('images/TESI12.BMP')
     im_rgb = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
     im_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     # hist, bins = np.histogram(im.flatten(), 256, [0, 256])
