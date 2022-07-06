@@ -1,9 +1,7 @@
 import math
-from turtle import Vec2D
 from cv2 import cv2
 from matplotlib import pyplot as plt
 import numpy as np
-from regex import V1
 import rod
 
 # Utility class which defines the used static methods
@@ -147,33 +145,56 @@ def blob_analysis(components, image):
             if dist_minor_axis < c4[2]:
                 c4 = (ji[0][k], ji[1][k], dist_minor_axis)
 
-        # line connecting the farthest points from the minor and major axis -> l1 = (m, q)
-        cl1 = -(alpha*c1[0] - beta*c1[1])
-        cl2 = -(alpha*c2[0] - beta*c2[1])
-        cw1 = -(beta*c3[0] + alpha*c3[1])
-        cw2 =  -(beta*c4[0] + alpha*c4[1])
+        # angular coefficient of the major and minor axis
+        m_major_axis = -major_axis[i][1]/major_axis[i][0]
+        m_minor_axis = -minor_axis[i][1]/minor_axis[i][0]
+
+        cl1 = -(alpha * c1[0] - beta * c1[1])
+        cl2 = -(alpha * c2[0] - beta * c2[1])
+        cw1 = -(beta * c3[0] + alpha * c3[1])
+        cw2 = -(beta * c4[0] + alpha * c4[1])
 
         # vertexes of the minimum enclosed rectangle
-        v1 = ( (beta*cl1-alpha*cw1)/(alpha**2+beta**2) , (-beta*cw1-alpha*cl1)/(alpha**2+beta**2))
-        v2 = ( (beta*cl1-alpha*cw2)/(alpha**2+beta**2) , (-beta*cw2-alpha*cl1)/(alpha**2+beta**2))
-        v3 = ( (beta*cl2-alpha*cw1)/(alpha**2+beta**2) , (-beta*cw1-alpha*cl2)/(alpha**2+beta**2))
-        v4 = ( (beta*cl2-alpha*cw2)/(alpha**2+beta**2) , (-beta*cw2-alpha*cl2)/(alpha**2+beta**2))
+        v1 = (
+        (beta * cl1 - alpha * cw1) / (alpha ** 2 + beta ** 2), (-beta * cw1 - alpha * cl1) / (alpha ** 2 + beta ** 2))
+        v2 = (
+        (beta * cl1 - alpha * cw2) / (alpha ** 2 + beta ** 2), (-beta * cw2 - alpha * cl1) / (alpha ** 2 + beta ** 2))
+        v3 = (
+        (beta * cl2 - alpha * cw1) / (alpha ** 2 + beta ** 2), (-beta * cw1 - alpha * cl2) / (alpha ** 2 + beta ** 2))
+        v4 = (
+        (beta * cl2 - alpha * cw2) / (alpha ** 2 + beta ** 2), (-beta * cw2 - alpha * cl2) / (alpha ** 2 + beta ** 2))
 
         component_rgb = cv2.merge([components[i], components[i], components[i]])
         cv2.line(component_rgb, (int(v1[0]), int(v1[1])), (int(v3[0]), int(v3[1])), (255, 0, 0), 1)
         cv2.line(component_rgb, (int(v3[0]), int(v3[1])), (int(v4[0]), int(v4[1])), (255, 0, 0), 1)
         cv2.line(component_rgb, (int(v4[0]), int(v4[1])), (int(v2[0]), int(v2[1])), (255, 0, 0), 1)
         cv2.line(component_rgb, (int(v1[0]), int(v1[1])), (int(v2[0]), int(v2[1])), (255, 0, 0), 1)
-        # image_show(component_rgb, "MER")
+
+        # line connecting the farthest points from the minor and major axis -> l1 = (m, q)
+        # l1 = (m_major_axis, c1[1]-m_major_axis*c1[0])
+        # l2 = (m_major_axis, c2[1]-m_major_axis*c2[0])
+        # w1 = (m_minor_axis, c3[1]-m_minor_axis*c3[0])
+        # w2 = (m_minor_axis, c4[1]-m_minor_axis*c4[0])
+        #
+        # # vertexes of the minimum enclosed rectangle
+        # v1 = ((w1[1] - l1[1]) / (l1[0] - w1[0]), (w1[1] - l1[1]) / (l1[0] - w1[0])*l1[0] + l1[1])
+        # v2 = ((w2[1] - l1[1]) / (l1[0] - w2[0]), (w2[1] - l1[1]) / (l1[0] - w2[0])*l1[0] + l1[1])
+        # v4 = ((w2[1] - l2[1]) / (l2[0] - w2[0]), (w2[1] - l2[1]) / (l2[0] - w2[0])*l2[0] + l2[1])
+        # v3 = ((w1[1] - l2[1]) / (l2[0] - w1[0]), (w1[1] - l2[1]) / (l2[0] - w1[0])*l2[0] + l2[1])
+        #
+        # component_rgb = cv2.merge([components[i], components[i], components[i]])
+        cv2.line(component_rgb, (int(v1[0]), int(v1[1])), (int(v3[0]), int(v3[1])), (255, 0, 0), 1)
+        cv2.line(component_rgb, (int(v3[0]), int(v3[1])), (int(v4[0]), int(v4[1])), (255, 0, 0), 1)
+        cv2.line(component_rgb, (int(v4[0]), int(v4[1])), (int(v2[0]), int(v2[1])), (255, 0, 0), 1)
+        cv2.line(component_rgb, (int(v1[0]), int(v1[1])), (int(v2[0]), int(v2[1])), (255, 0, 0), 1)
+        image_show(component_rgb, "MER")
 
         # component_rgb = cv2.merge([components[i], components[i], components[i]])
-        cv2.circle(component_rgb, (c1[1], c1[0]), 4, (0, 150, 150), -1)
-        cv2.circle(component_rgb, (c2[1], c2[0]), 4, (0, 150, 150), -1)
-        cv2.circle(component_rgb, (c3[1], c3[0]), 4, (0, 150, 150), -1)
-        cv2.circle(component_rgb, (c4[1], c4[0]), 4, (0, 150, 150), -1)
-        leng = math.sqrt((v3[0]-v4[0])**2 + (v3[1]-v4[1])**2)
-        wid = math.sqrt((v2[0]-v4[0])**2 + (v2[1]-v4[1])**2)
-        image_show_LW(component_rgb, "MER", leng, wid)
+        # cv2.circle(component_rgb, (c1[1], c1[0]), 4, (0, 150, 150), -1)
+        # cv2.circle(component_rgb, (c2[1], c2[0]), 4, (0, 150, 150), -1)
+        # cv2.circle(component_rgb, (c3[1], c3[0]), 4, (0, 150, 150), -1)
+        # cv2.circle(component_rgb, (c4[1], c4[0]), 4, (0, 150, 150), -1)
+        # image_show(component_rgb, "MER")
 
     draw_major_axis(major_axis, image)
     barycenter_distance(ji, minor_axis)
@@ -244,13 +265,4 @@ def draw_centroids(image, stats_list):
 def image_show(image, title):
     plt.title(title)
     plt.imshow(image, cmap='gray', vmin='0', vmax='255')
-
-    plt.show()
-
-
-def image_show_LW(image, title, length, width):
-    font2 = {'family':'serif','color':'darkred','size':15}
-    plt.title(title)
-    plt.imshow(image, cmap='gray', vmin='0', vmax='255')
-    plt.xlabel("Lenght : " + str(length) + "  Width : " + str(width), fontdict = font2)
     plt.show()

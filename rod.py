@@ -32,7 +32,8 @@ class Rod:
     def __repr__(self):
         return f"type: {self.type}  orientation: {self.orientation} " \
                f"num holes: {len(self.holes)} -> \n\t" \
-               f"ib: {self.barycenter[0]}, jb: {self.barycenter[1]} \n"
+               f"ib: {self.barycenter[0]}, jb: {self.barycenter[1]} \n" \
+               f"barycenter width: {self.width_b} \n"
 
     def __str__(self):
         return f"type: {self.type}  orientation: {self.orientation} " \
