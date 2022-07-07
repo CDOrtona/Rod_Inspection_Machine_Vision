@@ -41,19 +41,6 @@ def dilation(bin_image):
     return dilated_image
 
 
-def barycenter_distance(contour, minor_axis):
-    d1 = (0, 0, 255)
-
-    for i in range(len(minor_axis)):
-        for k in range(len(contour[0])):
-            dist_minor_axis = (minor_axis[i][0] * contour[0][k] + minor_axis[i][1] * contour[1][k] + minor_axis[i][2]) \
-                             / math.sqrt(minor_axis[i][0] ** 2 + minor_axis[i][1] ** 2)
-            if dist_minor_axis < d1[2]:
-                d1 = (contour[0], contour[1], dist_minor_axis)
-        distance_b = 2*d1[2]
-        rod_list[i].width_b = distance_b
-
-
 # def bin_morphology(image):
 #     # kernel = np.eye(5, dtype=np.uint8)
 #     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
@@ -100,7 +87,6 @@ def blob_analysis(components, image):
 
     major_axis = []
     minor_axis = []
-    ji = np.zeros_like(components)
 
     for i in range(len(moments_list)):
         # orientation DEFINED IN [0, PI], FIND A WAY TO EXPRESS IT IN [0, 2PI]
@@ -132,6 +118,11 @@ def blob_analysis(components, image):
         c3 = (0, 0, 0)
         c4 = (0, 0, 0)
 
+        # points which have the minimum distance from the minor axis, they can either be on the left or right
+        # of the major axis depending on weather the distance is positive or negative
+        wb_1 = (0, 0, 255)
+        wb_2 = (0, 0, 255)
+
         ji = np.nonzero(component_contour == 255)  # tuple of 2 ndarrays
         for k in range(len(ji[0])):
             dist_major_axis = (major_axis[i][0] * ji[0][k] + major_axis[i][1] * ji[1][k] + major_axis[i][2]) / \
@@ -147,11 +138,21 @@ def blob_analysis(components, image):
             if dist_minor_axis < c4[2]:
                 c4 = (ji[0][k], ji[1][k], dist_minor_axis)
 
+            if abs(dist_minor_axis) < wb_1[2] and dist_major_axis > 0:
+                wb_1 = (ji[0][k], ji[1][k], abs(dist_minor_axis))
+            if abs(dist_minor_axis) < wb_2[2] and dist_major_axis < 0:
+                wb_2 = (ji[0][k], ji[1][k], abs(dist_minor_axis))
+
+        # width at the barycenter
+        width_b = math.sqrt((wb_1[0] - wb_2[0])**2 + (wb_1[1] - wb_2[1])**2)
+        print(wb_1, wb_2, width_b)
+        rod_list[i].width_b = width_b
+
         # line connecting the farthest points from the minor and major axis -> l1 = (m, q)
         cl1 = -(alpha*c1[0] - beta*c1[1])
         cl2 = -(alpha*c2[0] - beta*c2[1])
         cw1 = -(beta*c3[0] + alpha*c3[1])
-        cw2 =  -(beta*c4[0] + alpha*c4[1])
+        cw2 = -(beta*c4[0] + alpha*c4[1])
 
         # vertexes of the minimum enclosed rectangle
         v1 = ( (beta*cl1-alpha*cw1)/(alpha**2+beta**2) , (-beta*cw1-alpha*cl1)/(alpha**2+beta**2))
@@ -171,12 +172,24 @@ def blob_analysis(components, image):
         cv2.circle(component_rgb, (c2[1], c2[0]), 4, (0, 150, 150), -1)
         cv2.circle(component_rgb, (c3[1], c3[0]), 4, (0, 150, 150), -1)
         cv2.circle(component_rgb, (c4[1], c4[0]), 4, (0, 150, 150), -1)
+        cv2.circle(component_rgb, (wb_1[1], wb_1[0]), 4, (0, 150, 150), -1)
+        cv2.circle(component_rgb, (wb_2[1], wb_2[0]), 4, (0, 150, 150), -1)
+        plt.annotate("wb_1",  # this is the text
+                     (wb_1[0], wb_1[1]),  # these are the coordinates to position the label
+                     textcoords="offset points",  # how to position the text
+                     xytext=(0, 10),  # distance from text to points (x,y)
+                     ha='center')
+        plt.annotate("wb_2",  # this is the text
+                     (wb_2[0], wb_2[1]),  # these are the coordinates to position the label
+                     textcoords="offset points",  # how to position the text
+                     xytext=(0, 10),  # distance from text to points (x,y)
+                     ha='center')
+
         leng = math.sqrt((v3[0]-v4[0])**2 + (v3[1]-v4[1])**2)
         wid = math.sqrt((v2[0]-v4[0])**2 + (v2[1]-v4[1])**2)
         image_show_LW(component_rgb, "MER", leng, wid)
 
     draw_major_axis(major_axis, image)
-    barycenter_distance(ji, minor_axis)
 
 
 # parser used to acquire the stats of each component.
@@ -205,7 +218,6 @@ def blobs_mask(num_labels, labels):
     image_show(mask_rgb, "Outlined Blobs")
     return mask_rgb
 
-
 # circularity feature is used to asses whether the object is a circle or not
 # def is_circle(component):
 #     circularity = (4 * component["A"]) / (np.pi * component["W"]**2)
@@ -214,6 +226,7 @@ def blobs_mask(num_labels, labels):
 #         return True
 #     else:
 #         return False
+
 
 def draw_major_axis(major_axis, image):
     comp_major_axis = np.zeros_like(image)
