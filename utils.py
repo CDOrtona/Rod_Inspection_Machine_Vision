@@ -1,17 +1,19 @@
 import math
-from turtle import Vec2D
-from cv2 import cv2
+from turtle import Vec2D, shape
+from cv2 import arcLength, cv2
 from matplotlib import pyplot as plt
 import numpy as np
 from regex import V1
 import rod
+
+TYPE_OF_ROD = {1:"A", 2:"B"}
 
 # Utility class which defines the used static methods
 RGB_LABELS = [(0, 0, 255), (255, 127, 255), (127, 0, 255), (127, 0, 127), (0, 255, 0), (255, 255, 0),
               (0, 255, 255), (255, 0, 255), ]
 
 rod_list = []
-
+THRESHOLD_CIRCULARITY = 1.16
 
 def binarize(image):
     _, thresh = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
@@ -59,15 +61,15 @@ def connected_comp_labelling(image):
     # for loop starts from 1 since the first blob is always the background
     for i in range(1, retval):
         # I'll have to add a checker for checking whether it's a rod or not
-        rod_list.append(rod.Rod())
-        rod_list[i - 1].barycenter = centroids[i]
+        # 
+        # 
         component = np.array([[255 if pixel == i else 0 for pixel in row] for row in labels], dtype=np.uint8)
-        components_list.append(component)
-        # image_show(255-component, "component")
-        h_retval, h_labels, h_stats, h_centroids = cv2.connectedComponentsWithStats(255 - component, 8)
-        if h_retval > 2:
-            print("greater than 2")
-            rod_list[i - 1].assign_holes(h_retval, h_stats, h_centroids)
+        
+        if is_rod(component):
+            rod_list[-1].barycenter = centroids[i]
+            components_list.append(component)
+
+        
     #     mask_holes = blobs_mask(h_retval, h_labels)
     #     rod_stats = blob_stats_parser(h_retval, h_stats, h_centroids)
     #     image_mer = draw_obb(mask_holes, rod_stats)
@@ -229,11 +231,21 @@ def blobs_mask(num_labels, labels):
 
 
 def draw_major_axis(major_axis, image):
+    intersection_points = []
     comp_major_axis = np.zeros_like(image)
     for i in range(len(major_axis)):
-        x1 = -major_axis[i][2] / major_axis[i][1]
-        y2 = -major_axis[i][2] / major_axis[i][0]
-        comp_major_axis = cv2.line(image, (int(abs(x1)), 0), (0, int(abs(y2))), (255, 0, 0), 1)
+        
+        intersection_points.append((0,-major_axis[i][2]/major_axis[i][0]))
+        intersection_points.append((np.shape(image)[1], -(np.shape(image)[1]*major_axis[i][1]+major_axis[i][2])/major_axis[i][0]))
+        intersection_points.append(( -major_axis[i][2]/major_axis[i][1],0))
+        intersection_points.append((-(major_axis[i][0]*np.shape(image)[0]+major_axis[i][2])/major_axis[i][1],np.shape(image)[0]))
+
+        for point in intersection_points:
+            if(point[0]<0 or point[0]>np.shape(image)[1] or point[1]<0 or point[1]>np.shape(image)[0]):
+                intersection_points.remove(point)
+
+
+        comp_major_axis = cv2.line(image, (int(intersection_points[-2][0]), int(intersection_points[-2][1])), (int(intersection_points[-1][0]), int(intersection_points[-1][1])), (255, 0, 0), 1)
 
     image_show(comp_major_axis, "Image with Major Axis")
 
@@ -267,3 +279,35 @@ def image_show_LW(image, title, length, width):
     plt.imshow(image, cmap='gray', vmin='0', vmax='255')
     plt.xlabel("Lenght : " + str(length) + "  Width : " + str(width), fontdict = font2)
     plt.show()
+
+def is_rod(component):
+    
+    contours, hierarchy = cv2.findContours(component, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+    print(np.shape(hierarchy))
+
+    if np.shape(hierarchy)[1] == 1 :
+        return False
+
+    if np.shape(hierarchy)[1] != 1 :
+
+        perimeter = cv2.arcLength(contours[-1], True )
+        area = cv2.contourArea(contours[-1], False)
+        circularity = (perimeter**2)/(area*4*math.pi)
+
+        if circularity < THRESHOLD_CIRCULARITY : 
+            return False
+            
+        rod_list.append(rod.Rod())
+        
+        number_of_holes = np.shape(hierarchy)[1]-1
+        rod_list[-1].type = TYPE_OF_ROD[number_of_holes] 
+
+
+        for i in range(number_of_holes):
+            moment = cv2.moments(contours[i])
+            circle_barycenter = ((moment["m10"]/moment["m00"]),(moment["m01"]/moment["m00"])) 
+            diameter = cv2.arcLength(contours[i], True)/math.pi
+            rod_list[-1].assign_holes(diameter, circle_barycenter)
+
+        return True      
+
