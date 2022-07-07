@@ -1,6 +1,6 @@
 import math
 from turtle import Vec2D, shape
-from cv2 import arcLength, cv2
+from cv2 import cv2
 from matplotlib import pyplot as plt
 import numpy as np
 from regex import V1
@@ -14,6 +14,7 @@ RGB_LABELS = [(0, 0, 255), (255, 127, 255), (127, 0, 255), (127, 0, 127), (0, 25
 
 rod_list = []
 THRESHOLD_CIRCULARITY = 1.16
+
 
 def binarize(image):
     _, thresh = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
