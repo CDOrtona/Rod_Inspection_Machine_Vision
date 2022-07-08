@@ -1,4 +1,5 @@
 import math
+from pickle import TRUE
 from turtle import Vec2D, shape
 from cv2 import cv2
 from matplotlib import pyplot as plt
@@ -53,39 +54,77 @@ def dilation(bin_image):
 #     image_show(cleaned_image, "After Morphology")
 #     return cleaned_image
 
-def detach_components(component):
-    contours, _ = cv2.findContours(component, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    contour = contours[0]
-    component_rgb = cv2.merge([component, component, component])
-    approx_im = cv2.approxPolyDP(contours[0], 2, True)
-    hull = cv2.convexHull(contour, returnPoints=False)
-    # cv2.drawContours(component_rgb, [hull], -1, (255, 0, 0), 2)
-    # cv2.drawContours(component_rgb, [approx_im], -1, (255, 0, 0), 1)
+def detach_components(bin_image):
+    while(True):
+        image_show(bin_image, "ADESSO")
+        #retval, labels = cv2.connectedComponents(bin_image, 8)
+        #component_list = []
+        #contours_list = []
+        #for i in range(1, retval):
+         #   component = np.array([[255 if pixel == i else 0 for pixel in row] for row in labels], dtype=np.uint8)
+          #  components_list.append(component)
+        contours, _ = cv2.findContours(bin_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        #contours_list.append(contours)
 
-    defects = cv2.convexityDefects(contour, hull)
+        exit_form_while = True
+        idx = 0
+        i = 0
+        
 
-    far_list = []
-    for i in range(np.shape(defects)[0]):
-        _, _, f, d = defects[i, 0]
-        far = tuple(contour[f][0])
+        for cnt in contours:
+            
+            if abs(cv2.contourArea(cnt,True)) > 6000:
+                
+                exit_form_while = False
+                idx = i
+            
+            i = i+1
 
-        far_list.append([far, d/256.0])
+        
+        if exit_form_while:
+            break
 
-    far_list = sorted(far_list, key=lambda x: x[1])
+        contour = contours[idx]
 
-    start_far = far_list[-1][0]
-    end_far = far_list[-2][0]
-    dist_far = math.sqrt((start_far[0] - end_far[0])**2 + (start_far[1] - end_far[1])**2)
 
-    if dist_far > 30:
-        end_far = far_list[-3][0]
-        dist_far = math.sqrt((start_far[0] - end_far[0]) ** 2 + (start_far[1] - end_far[1]) ** 2)
+
+        #component_rgb = cv2.merge([component, component, component])
+        #approx_im = cv2.approxPolyDP(contour, 2, True)
+        hull = cv2.convexHull(contour, returnPoints=False)
+        # cv2.drawContours(component_rgb, [hull], -1, (255, 0, 0), 2)
+        # cv2.drawContours(component_rgb, [approx_im], -1, (255, 0, 0), 1)
+
+        defects = cv2.convexityDefects(contour, hull)
+
+        far_list = []
+        for i in range(np.shape(defects)[0]):
+            _, _, f, d = defects[i, 0]
+            far = tuple(contour[f][0])
+
+            far_list.append([far, d/256.0])
+
+        far_list = sorted(far_list, key=lambda x: x[1])
+
+        start_far = far_list[-1][0]
+        end_far = far_list[-2][0]
+        dist_far = math.sqrt((start_far[0] - end_far[0])**2 + (start_far[1] - end_far[1])**2)
+
         if dist_far > 30:
-            end_far = far_list[-4][0]
+            end_far = far_list[-3][0]
+            dist_far = math.sqrt((start_far[0] - end_far[0]) ** 2 + (start_far[1] - end_far[1]) ** 2)
+            if dist_far > 30:
+                end_far = far_list[-4][0]
 
-    cv2.line(component_rgb, start_far, end_far, (255, 255, 0), 2)
+        cv2.line(bin_image, start_far, end_far, (0, 0, 0), 2)
+        image_show(bin_image, "Approximated Contours")
+    
+    #contours = np.zeros_like(contours)
+    #component = np.zeros_like(component)
+        
 
-    image_show(component_rgb, "Approximated Contours")
+
+    
+    
 
 
     # retval, labels, stats, centroids = cv2.connectedComponentsWithStats(255 - image, 8)
@@ -102,7 +141,6 @@ def detach_components(component):
     # image_mer1 = draw_obb(mask1, rod_stats)
     # image_centroids1 = draw_centroids(image_mer1, rod_stats)
     # image_show(image_centroids1, "MER")
-    pass
 
 
 def connected_comp_labelling(image):
@@ -122,12 +160,9 @@ def connected_comp_labelling(image):
 
         print(f"Area of {i} is : {stats[i, cv2.CC_STAT_AREA]}")
 
-        if stats[i, cv2.CC_STAT_AREA] < THRESHOLD_AREA:
-            if is_rod(component):
-                rod_list[-1].barycenter = centroids[i]
-                components_list.append(component)
-        else:
-            detach_components(component)
+        if is_rod(component):
+            rod_list[-1].barycenter = centroids[i]
+            components_list.append(component)
 
 
     #     mask_holes = blobs_mask(h_retval, h_labels)

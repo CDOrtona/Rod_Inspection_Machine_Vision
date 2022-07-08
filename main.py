@@ -24,6 +24,7 @@ if __name__ == '__main__':
     filtered_image = utils.med_filter(image_gray, 4)
     utils.image_show(filtered_image, "Filtered Image")
     bin_image = utils.binarize(filtered_image.copy())
+    utils.detach_components(bin_image)
     # eroded_image = utils.erosion(bin_image)
     # utils.image_show(eroded_image, "Eroded Image")
     components, rods = utils.connected_comp_labelling(bin_image)
