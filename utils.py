@@ -326,6 +326,7 @@ def blobs_mask(num_labels, labels):
 
 
 def draw_major_axis(major_axis, image):
+    print("START")
     intersection_points = []
     comp_major_axis = np.zeros_like(image)
     for i in range(len(major_axis)):
@@ -334,14 +335,19 @@ def draw_major_axis(major_axis, image):
         intersection_points.append((np.shape(image)[1], -(np.shape(image)[1]*major_axis[i][1]+major_axis[i][2])/major_axis[i][0]))
         intersection_points.append(( -major_axis[i][2]/major_axis[i][1],0))
         intersection_points.append((-(major_axis[i][0]*np.shape(image)[0]+major_axis[i][2])/major_axis[i][1],np.shape(image)[0]))
+        print(intersection_points)
+        print("Inizio IF")
+        static_leng = len(intersection_points)
 
-        for point in intersection_points:
+        for i in range(static_leng):
+            point = intersection_points[static_leng - 1 - i]
             if(point[0]<0 or point[0]>np.shape(image)[1] or point[1]<0 or point[1]>np.shape(image)[0]):
+                print("remove "+ str(point))
                 intersection_points.remove(point)
 
 
         comp_major_axis = cv2.line(image, (int(intersection_points[-2][0]), int(intersection_points[-2][1])), (int(intersection_points[-1][0]), int(intersection_points[-1][1])), (255, 0, 0), 1)
-
+    print(intersection_points)
     image_show(comp_major_axis, "Image with Major Axis")
 
 
