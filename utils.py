@@ -1,10 +1,7 @@
 import math
-from pickle import TRUE
-from turtle import Vec2D, shape
 from cv2 import cv2
 from matplotlib import pyplot as plt
 import numpy as np
-from regex import V1
 import rod
 
 TYPE_OF_ROD = {1:"A", 2:"B"}
@@ -282,9 +279,11 @@ def blob_analysis(components, image):
                      xytext=(0, 10),  # distance from text to points (x,y)
                      ha='center')
 
-        leng = math.sqrt((v3[0]-v4[0])**2 + (v3[1]-v4[1])**2)
-        wid = math.sqrt((v2[0]-v4[0])**2 + (v2[1]-v4[1])**2)
-        image_show_LW(component_rgb, "MER", leng, wid)
+        length = math.sqrt((v3[0]-v4[0])**2 + (v3[1]-v4[1])**2)
+        width = math.sqrt((v2[0]-v4[0])**2 + (v2[1]-v4[1])**2)
+        rod_list[i].length = length
+        rod_list[i].width = width
+        image_show_LW(component_rgb, "MER", length, width)
 
     draw_major_axis(major_axis, image)
 
