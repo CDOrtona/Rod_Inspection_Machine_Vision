@@ -19,7 +19,7 @@ def export_cvs(rods_list):
 
 
 if __name__ == '__main__':
-    image = cv2.imread('images/TESI00.BMP')
+    image = cv2.imread('images/TESI90.BMP')
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     utils.image_show(image_gray, "Input Image")
@@ -31,5 +31,5 @@ if __name__ == '__main__':
     # utils.image_show(eroded_image, "Eroded Image")
     components, rods = utils.connected_comp_labelling(bin_image)
     utils.blob_analysis(components, image_rgb.copy())
-    # print(list(rods[i] for i in range(len(rods))))
+    print(list(rods[i] for i in range(len(rods))))
     export_cvs(rods)

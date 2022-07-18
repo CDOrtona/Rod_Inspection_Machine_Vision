@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import rod
 
-TYPE_OF_ROD = {1:"A", 2:"B"}
+TYPE_OF_ROD = {1: "A", 2: "B"}
 
 # Utility class which defines the used static methods
 RGB_LABELS = [(0, 0, 255), (255, 127, 255), (127, 0, 255), (127, 0, 127), (0, 255, 0), (255, 255, 0),
@@ -26,7 +26,6 @@ def binarize(image):
 
 # beautify
 def med_filter(image, iterations):
-
     for i in range(iterations):
         image = cv2.medianBlur(image, 3)
     return image
@@ -44,49 +43,37 @@ def dilation(bin_image):
     return dilated_image
 
 
-# def bin_morphology(image):
-#     # kernel = np.eye(5, dtype=np.uint8)
-#     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-#     cleaned_image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
-#     image_show(cleaned_image, "After Morphology")
-#     return cleaned_image
-
 def detach_components(bin_image):
-    while(True):
+    while (True):
         image_show(bin_image, "ADESSO")
-        #retval, labels = cv2.connectedComponents(bin_image, 8)
-        #component_list = []
-        #contours_list = []
-        #for i in range(1, retval):
-         #   component = np.array([[255 if pixel == i else 0 for pixel in row] for row in labels], dtype=np.uint8)
-          #  components_list.append(component)
+        # retval, labels = cv2.connectedComponents(bin_image, 8)
+        # component_list = []
+        # contours_list = []
+        # for i in range(1, retval):
+        #   component = np.array([[255 if pixel == i else 0 for pixel in row] for row in labels], dtype=np.uint8)
+        #  components_list.append(component)
         contours, _ = cv2.findContours(bin_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        #contours_list.append(contours)
+        # contours_list.append(contours)
 
         exit_form_while = True
         idx = 0
         i = 0
-        
 
         for cnt in contours:
-            
-            if abs(cv2.contourArea(cnt,True)) > 6000:
-                
+
+            if abs(cv2.contourArea(cnt, True)) > 6000:
                 exit_form_while = False
                 idx = i
-            
-            i = i+1
 
-        
+            i = i + 1
+
         if exit_form_while:
             break
 
         contour = contours[idx]
 
-
-
-        #component_rgb = cv2.merge([component, component, component])
-        #approx_im = cv2.approxPolyDP(contour, 2, True)
+        # component_rgb = cv2.merge([component, component, component])
+        # approx_im = cv2.approxPolyDP(contour, 2, True)
         hull = cv2.convexHull(contour, returnPoints=False)
         # cv2.drawContours(component_rgb, [hull], -1, (255, 0, 0), 2)
         # cv2.drawContours(component_rgb, [approx_im], -1, (255, 0, 0), 1)
@@ -98,13 +85,13 @@ def detach_components(bin_image):
             _, _, f, d = defects[i, 0]
             far = tuple(contour[f][0])
 
-            far_list.append([far, d/256.0])
+            far_list.append([far, d / 256.0])
 
         far_list = sorted(far_list, key=lambda x: x[1])
 
         start_far = far_list[-1][0]
         end_far = far_list[-2][0]
-        dist_far = math.sqrt((start_far[0] - end_far[0])**2 + (start_far[1] - end_far[1])**2)
+        dist_far = math.sqrt((start_far[0] - end_far[0]) ** 2 + (start_far[1] - end_far[1]) ** 2)
 
         if dist_far > 30:
             end_far = far_list[-3][0]
@@ -114,34 +101,9 @@ def detach_components(bin_image):
 
         cv2.line(bin_image, start_far, end_far, (0, 0, 0), 2)
         image_show(bin_image, "Approximated Contours")
-    
-    #contours = np.zeros_like(contours)
-    #component = np.zeros_like(component)
-        
-
-
-    
-    
-
-
-    # retval, labels, stats, centroids = cv2.connectedComponentsWithStats(255 - image, 8)
-    # for i in range(1, retval):
-    #     # I'll have to add a checker for checking whether it's a rod or not
-    #     #
-    #     #
-    #     component = np.array([[255 if pixel == i else 0 for pixel in row] for row in labels], dtype=np.uint8)
-    #
-    #     if is_rod(component):
-    #         rod_list[-1].barycenter = centroids[i]
-    #         components_list.append(component)
-    # mask1 = blobs_mask(retval, labels.copy())
-    # image_mer1 = draw_obb(mask1, rod_stats)
-    # image_centroids1 = draw_centroids(image_mer1, rod_stats)
-    # image_show(image_centroids1, "MER")
 
 
 def connected_comp_labelling(image):
-
     retval, labels, stats, centroids = cv2.connectedComponentsWithStats(image, 8)
     rod_stats = blob_stats_parser(retval, stats, centroids)
     print(rod_stats)
@@ -160,7 +122,6 @@ def connected_comp_labelling(image):
         if is_rod(component):
             rod_list[-1].barycenter = centroids[i]
             components_list.append(component)
-
 
     #     mask_holes = blobs_mask(h_retval, h_labels)
     #     rod_stats = blob_stats_parser(h_retval, h_stats, h_centroids)
@@ -238,21 +199,25 @@ def blob_analysis(components, image):
                 wb_2 = (ji[0][k], ji[1][k], abs(dist_minor_axis))
 
         # width at the barycenter
-        width_b = math.sqrt((wb_1[0] - wb_2[0])**2 + (wb_1[1] - wb_2[1])**2)
+        width_b = math.sqrt((wb_1[0] - wb_2[0]) ** 2 + (wb_1[1] - wb_2[1]) ** 2)
         print(wb_1, wb_2, width_b)
         rod_list[i].width_b = width_b
 
         # line connecting the farthest points from the minor and major axis -> l1 = (m, q)
-        cl1 = -(alpha*c1[0] - beta*c1[1])
-        cl2 = -(alpha*c2[0] - beta*c2[1])
-        cw1 = -(beta*c3[0] + alpha*c3[1])
-        cw2 = -(beta*c4[0] + alpha*c4[1])
+        cl1 = -(alpha * c1[0] - beta * c1[1])
+        cl2 = -(alpha * c2[0] - beta * c2[1])
+        cw1 = -(beta * c3[0] + alpha * c3[1])
+        cw2 = -(beta * c4[0] + alpha * c4[1])
 
         # vertexes of the minimum enclosed rectangle
-        v1 = ( (beta*cl1-alpha*cw1)/(alpha**2+beta**2) , (-beta*cw1-alpha*cl1)/(alpha**2+beta**2))
-        v2 = ( (beta*cl1-alpha*cw2)/(alpha**2+beta**2) , (-beta*cw2-alpha*cl1)/(alpha**2+beta**2))
-        v3 = ( (beta*cl2-alpha*cw1)/(alpha**2+beta**2) , (-beta*cw1-alpha*cl2)/(alpha**2+beta**2))
-        v4 = ( (beta*cl2-alpha*cw2)/(alpha**2+beta**2) , (-beta*cw2-alpha*cl2)/(alpha**2+beta**2))
+        v1 = (
+        (beta * cl1 - alpha * cw1) / (alpha ** 2 + beta ** 2), (-beta * cw1 - alpha * cl1) / (alpha ** 2 + beta ** 2))
+        v2 = (
+        (beta * cl1 - alpha * cw2) / (alpha ** 2 + beta ** 2), (-beta * cw2 - alpha * cl1) / (alpha ** 2 + beta ** 2))
+        v3 = (
+        (beta * cl2 - alpha * cw1) / (alpha ** 2 + beta ** 2), (-beta * cw1 - alpha * cl2) / (alpha ** 2 + beta ** 2))
+        v4 = (
+        (beta * cl2 - alpha * cw2) / (alpha ** 2 + beta ** 2), (-beta * cw2 - alpha * cl2) / (alpha ** 2 + beta ** 2))
 
         component_rgb = cv2.merge([components[i], components[i], components[i]])
         cv2.line(component_rgb, (int(v1[0]), int(v1[1])), (int(v3[0]), int(v3[1])), (255, 0, 0), 1)
@@ -279,8 +244,8 @@ def blob_analysis(components, image):
                      xytext=(0, 10),  # distance from text to points (x,y)
                      ha='center')
 
-        length = math.sqrt((v3[0]-v4[0])**2 + (v3[1]-v4[1])**2)
-        width = math.sqrt((v2[0]-v4[0])**2 + (v2[1]-v4[1])**2)
+        length = math.sqrt((v3[0] - v4[0]) ** 2 + (v3[1] - v4[1]) ** 2)
+        width = math.sqrt((v2[0] - v4[0]) ** 2 + (v2[1] - v4[1]) ** 2)
         rod_list[i].length = length
         rod_list[i].width = width
         image_show_LW(component_rgb, "MER", length, width)
@@ -314,38 +279,31 @@ def blobs_mask(num_labels, labels):
     image_show(mask_rgb, "Outlined Blobs")
     return mask_rgb
 
-# circularity feature is used to asses whether the object is a circle or not
-# def is_circle(component):
-#     circularity = (4 * component["A"]) / (np.pi * component["W"]**2)
-#     print(f"Circularity {circularity}")
-#     if 1.4 >= circularity >= .7:
-#         return True
-#     else:
-#         return False
-
 
 def draw_major_axis(major_axis, image):
     print("START")
     intersection_points = []
     comp_major_axis = np.zeros_like(image)
     for i in range(len(major_axis)):
-        
-        intersection_points.append((0,-major_axis[i][2]/major_axis[i][0]))
-        intersection_points.append((np.shape(image)[1], -(np.shape(image)[1]*major_axis[i][1]+major_axis[i][2])/major_axis[i][0]))
-        intersection_points.append(( -major_axis[i][2]/major_axis[i][1],0))
-        intersection_points.append((-(major_axis[i][0]*np.shape(image)[0]+major_axis[i][2])/major_axis[i][1],np.shape(image)[0]))
+
+        intersection_points.append((0, -major_axis[i][2] / major_axis[i][0]))
+        intersection_points.append(
+            (np.shape(image)[1], -(np.shape(image)[1] * major_axis[i][1] + major_axis[i][2]) / major_axis[i][0]))
+        intersection_points.append((-major_axis[i][2] / major_axis[i][1], 0))
+        intersection_points.append(
+            (-(major_axis[i][0] * np.shape(image)[0] + major_axis[i][2]) / major_axis[i][1], np.shape(image)[0]))
         print(intersection_points)
         print("Inizio IF")
         static_leng = len(intersection_points)
 
         for i in range(static_leng):
             point = intersection_points[static_leng - 1 - i]
-            if(point[0]<0 or point[0]>np.shape(image)[1] or point[1]<0 or point[1]>np.shape(image)[0]):
-                print("remove "+ str(point))
+            if (point[0] < 0 or point[0] > np.shape(image)[1] or point[1] < 0 or point[1] > np.shape(image)[0]):
+                print("remove " + str(point))
                 intersection_points.remove(point)
 
-
-        comp_major_axis = cv2.line(image, (int(intersection_points[-2][0]), int(intersection_points[-2][1])), (int(intersection_points[-1][0]), int(intersection_points[-1][1])), (255, 0, 0), 1)
+        comp_major_axis = cv2.line(image, (int(intersection_points[-2][0]), int(intersection_points[-2][1])),
+                                   (int(intersection_points[-1][0]), int(intersection_points[-1][1])), (255, 0, 0), 1)
     print(intersection_points)
     image_show(comp_major_axis, "Image with Major Axis")
 
@@ -369,45 +327,42 @@ def draw_centroids(image, stats_list):
 def image_show(image, title):
     plt.title(title)
     plt.imshow(image, cmap='gray', vmin='0', vmax='255')
-
     plt.show()
 
 
 def image_show_LW(image, title, length, width):
-    font2 = {'family':'serif','color':'darkred','size':15}
+    font2 = {'family': 'serif', 'color': 'darkred', 'size': 15}
     plt.title(title)
     plt.imshow(image, cmap='gray', vmin='0', vmax='255')
-    plt.xlabel("Lenght : " + str(length) + "  Width : " + str(width), fontdict = font2)
+    plt.xlabel("Lenght : " + str(length) + "  Width : " + str(width), fontdict=font2)
     plt.show()
 
+
 def is_rod(component):
-    
     contours, hierarchy = cv2.findContours(component, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
     print(np.shape(hierarchy))
 
-    if np.shape(hierarchy)[1] == 1 :
+    if np.shape(hierarchy)[1] == 1:
         return False
 
-    if np.shape(hierarchy)[1] != 1 :
+    if np.shape(hierarchy)[1] != 1:
 
-        perimeter = cv2.arcLength(contours[-1], True )
+        perimeter = cv2.arcLength(contours[-1], True)
         area = cv2.contourArea(contours[-1], False)
-        circularity = (perimeter**2)/(area*4*math.pi)
+        circularity = (perimeter ** 2) / (area * 4 * math.pi)
 
-        if circularity < THRESHOLD_CIRCULARITY : 
+        if circularity < THRESHOLD_CIRCULARITY:
             return False
-            
-        rod_list.append(rod.Rod())
-        
-        number_of_holes = np.shape(hierarchy)[1]-1
-        rod_list[-1].type = TYPE_OF_ROD[number_of_holes] 
 
+        rod_list.append(rod.Rod())
+
+        number_of_holes = np.shape(hierarchy)[1] - 1
+        rod_list[-1].type = TYPE_OF_ROD[number_of_holes]
 
         for i in range(number_of_holes):
             moment = cv2.moments(contours[i])
-            circle_barycenter = ((moment["m10"]/moment["m00"]),(moment["m01"]/moment["m00"])) 
-            diameter = cv2.arcLength(contours[i], True)/math.pi
+            circle_barycenter = ((moment["m10"] / moment["m00"]), (moment["m01"] / moment["m00"]))
+            diameter = cv2.arcLength(contours[i], True) / math.pi
             rod_list[-1].assign_holes(diameter, circle_barycenter)
 
-        return True      
-
+        return True
