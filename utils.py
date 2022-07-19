@@ -1,15 +1,11 @@
 import math
-from pickle import TRUE
-from turtle import Vec2D, shape
 from cv2 import cv2
 from matplotlib import pyplot as plt
 import numpy as np
-from regex import V1
 import rod
 
 TYPE_OF_ROD = {1:"A", 2:"B"}
 
-# Utility class which defines the used static methods
 RGB_LABELS = [(0, 0, 255), (255, 127, 255), (127, 0, 255), (127, 0, 127), (0, 255, 0), (255, 255, 0),
               (0, 255, 255), (255, 0, 255), ]
 
