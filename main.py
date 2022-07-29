@@ -18,7 +18,7 @@ def export_cvs(rods_list):
 
 
 if __name__ == '__main__':
-    image = cv2.imread('images/TESI51.BMP')
+    image = cv2.imread('images/TESI12.BMP')
     image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     utils.image_show(image_gray, "Input Image")
     filtered_image = utils.med_filter(image_gray, 4)
