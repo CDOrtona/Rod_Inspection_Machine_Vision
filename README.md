@@ -11,16 +11,16 @@
 <!-- Badges -->
 <p>
   <a href="https://github.com/CDOrtona/Rod_Inspection_Machine_Vision/graphs/contributors">
-    <img src="https://img.shields.io/github/contributors/Louis3797/awesome-readme-template" alt="contributors" />
+    <img src="https://img.shields.io/github/contributors/Louis3797/awesome-readme-template" />
   </a>
   <a href="https://github.com/CDOrtona/Rod_Inspection_Machine_Vision/network/members">
-    <img src="https://img.shields.io/github/forks/Louis3797/awesome-readme-template" alt="forks" />
+    <img src="https://img.shields.io/github/forks/CDOrtona/Rod_Inspection_Machine_Vision" alt="forks" />
   </a>
   <a href="https://github.com/CDOrtona/Rod_Inspection_Machine_Vision/stargazers">
-    <img src="https://img.shields.io/github/stars/Louis3797/awesome-readme-template" alt="stars" />
+    <img src="https://img.shields.io/github/stars/CDOrtona/Rod_Inspection_Machine_Vision" alt="stars" />
   </a>
   <a href="https://github.com/CDOrtona/Rod_Inspection_Machine_Vision/blob/master/LICENSE">
-    <img src="https://img.shields.io/github/license/Louis3797/awesome-readme-template.svg" alt="license" />
+    <img src="https://img.shields.io/github/license/CDOrtona/Rod_Inspection_Machine_Vision" alt="license" />
   </a>
 </p>
    
@@ -40,7 +40,7 @@
 - [Usage](#usage)
   * [Dependencies](#dependencies)
   * [Set-Up](#set-up)
-- [Contributors](#contributing)
+- [Contributors](#contributors)
 - [License](#license)
   
 
