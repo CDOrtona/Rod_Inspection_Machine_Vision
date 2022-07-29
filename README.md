@@ -120,7 +120,7 @@ Each rod is assigned a label in the Connected-Component labeling and a RGB-mask 
 Before performing the Blob Analysis where the features of each Blob is computed, those elements present in the pictures which are not rods(washers and screws) are discarded.
 
 <div align="center"> 
-  <img src="https://github.com/CDOrtona/Rod_Inspection_Machine_Vision/blob/master/project_files/mask_rgb.png"/>
+  <img src="https://github.com/CDOrtona/Rod_Inspection_Machine_Vision/blob/master/project_files/distractor.png"/>
 </div>
 
 The results of the blob analysis are depicted below:
