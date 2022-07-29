@@ -71,6 +71,7 @@ def detach_components(bin_image):
             far = tuple(contour[f][0])
 
             far_list.append([far, d / 256.0])
+            print(d, d/256.0)
 
         far_list = sorted(far_list, key=lambda x: x[1])
 
@@ -118,8 +119,8 @@ def blob_analysis(components, image):
 
     for i in range(len(moments_list)):
         theta = -0.5 * math.atan((2 * moments_list[i]["mu11"]) / (moments_list[i]["mu02"] - moments_list[i]["mu20"]))
-        d2theta = 2 * (moments_list[i]['mu02'] - moments_list[i]['mu20']) * math.cos(2 * theta) - \
-                  4 * moments_list[i]['mu11'] * math.sin(2 * theta)
+        d2theta = 2 * (moments_list[i]['mu02'] - moments_list[i]['mu20']) * math.cos(2 * theta) \
+                  - 4 * moments_list[i]['mu11'] * math.sin(2 * theta)
         theta = theta if d2theta > 0 else theta + math.pi / 2
         rod_list[i].orientation = theta * 180 / math.pi
 
@@ -135,7 +136,7 @@ def blob_analysis(components, image):
         component_eroded = cv2.erode(components[i], kernel)
         # we extrapolate the contour by dividing the image by its eroded pair
         component_contour = components[i] - component_eroded
-        image_show(component_contour, "Contour extrapolated from erosion")
+        # image_show(component_contour, "Contour extrapolated from erosion")
 
         # furthest points from the major and minor axis
         # cx = (j, i, distance from major axis)
@@ -185,13 +186,17 @@ def blob_analysis(components, image):
 
         # vertexes of the minimum enclosed rectangle
         v1 = (
-        (beta * cl1 - alpha * cw1) / (alpha ** 2 + beta ** 2), (-beta * cw1 - alpha * cl1) / (alpha ** 2 + beta ** 2))
+            (beta * cl1 - alpha * cw1) / (alpha ** 2 + beta ** 2),
+            (-beta * cw1 - alpha * cl1) / (alpha ** 2 + beta ** 2))
         v2 = (
-        (beta * cl1 - alpha * cw2) / (alpha ** 2 + beta ** 2), (-beta * cw2 - alpha * cl1) / (alpha ** 2 + beta ** 2))
+            (beta * cl1 - alpha * cw2) / (alpha ** 2 + beta ** 2),
+            (-beta * cw2 - alpha * cl1) / (alpha ** 2 + beta ** 2))
         v3 = (
-        (beta * cl2 - alpha * cw1) / (alpha ** 2 + beta ** 2), (-beta * cw1 - alpha * cl2) / (alpha ** 2 + beta ** 2))
+            (beta * cl2 - alpha * cw1) / (alpha ** 2 + beta ** 2),
+            (-beta * cw1 - alpha * cl2) / (alpha ** 2 + beta ** 2))
         v4 = (
-        (beta * cl2 - alpha * cw2) / (alpha ** 2 + beta ** 2), (-beta * cw2 - alpha * cl2) / (alpha ** 2 + beta ** 2))
+            (beta * cl2 - alpha * cw2) / (alpha ** 2 + beta ** 2),
+            (-beta * cw2 - alpha * cl2) / (alpha ** 2 + beta ** 2))
 
         component_rgb = cv2.merge([components[i], components[i], components[i]])
         cv2.line(component_rgb, (int(v1[0]), int(v1[1])), (int(v3[0]), int(v3[1])), (255, 0, 0), 1)
@@ -207,7 +212,7 @@ def blob_analysis(components, image):
         cv2.circle(component_rgb, (wb_2[1], wb_2[0]), 4, (0, 150, 150), -1)
         plt.annotate("wb_1",  # this is the text
                      (wb_1[1], wb_1[0]),  # these are the coordinates to position the label
-                     textcoords="offset points", size=16, color= "green",  # how to position the text
+                     textcoords="offset points", size=16, color="green",  # how to position the text
                      xytext=(0, 10),  # distance from text to points (x,y)
                      arrowprops=dict(facecolor='red', shrink=0.05),
                      ha='center')
@@ -250,10 +255,10 @@ def draw_major_axis(major_axis, image):
         intersection_points.append((-major_axis[i][2] / major_axis[i][1], 0))
         intersection_points.append(
             (-(major_axis[i][0] * np.shape(image)[0] + major_axis[i][2]) / major_axis[i][1], np.shape(image)[0]))
-        static_leng = len(intersection_points)
+        static_length = len(intersection_points)
 
-        for i in range(static_leng):
-            point = intersection_points[static_leng - 1 - i]
+        for i in range(static_length):
+            point = intersection_points[static_length - 1 - i]
             if point[0] < 0 or point[0] > np.shape(image)[1] or point[1] < 0 or point[1] > np.shape(image)[0]:
                 intersection_points.remove(point)
 
@@ -272,7 +277,7 @@ def image_show_LW(image, title, length, width):
     font2 = {'family': 'serif', 'color': 'darkred', 'size': 15}
     plt.title(title)
     plt.imshow(image, cmap='gray', vmin='0', vmax='255')
-    plt.xlabel("Lenght : " + str(length) + "  Width : " + str(width), fontdict=font2)
+    plt.xlabel("Length : " + str(length) + "  Width : " + str(width), fontdict=font2)
     plt.show()
 
 

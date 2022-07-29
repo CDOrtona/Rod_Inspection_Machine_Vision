@@ -14,7 +14,7 @@ class Rod:
                f"num holes: {len(self.holes)} \t -> holes: {self.holes} \n" \
                f"ib: {self.barycenter[0]}, jb: {self.barycenter[1]} \n" \
                f"orientation: {self.orientation}" \
-               f"barycenter width barycenter: {self.width_b} \n" \
+               f"barycenter width: {self.width_b} \n" \
                f"width: {self.width} \t length: {self.length} \n \n"
 
     def __str__(self):
@@ -22,7 +22,7 @@ class Rod:
                f"num holes: {len(self.holes)} \t -> holes: {self.holes} \n" \
                f"ib: {self.barycenter[0]}, jb: {self.barycenter[1]} \n" \
                f"orientation: {self.orientation}" \
-               f"barycenter width barycenter: {self.width_b} \n" \
+                   f"barycenter width: {self.width_b} \n" \
                f"width: {self.width} \t length: {self.length} \n \n"
 
     def assign_holes(self, diameter, centroids):
