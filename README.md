@@ -48,7 +48,7 @@
 ## About the Project
 
 
-The developed software system aimed at visual inspection of motorcycle 
+The developed software system is aimed at visual inspection of motorcycle 
 connecting rods. The system is able to analyse the dimensions of two different types
 of connecting rods to allow a vision-guided robot to pick and sort rods based on their type and 
 dimensions. The two rod types are characterized by a different number of holes: Type A rods have 
